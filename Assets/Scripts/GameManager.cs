@@ -5,7 +5,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    public TMP_Text scoreText;
+    public TMP_Text scoreText;  // You can leave this or use the UIManager instead
     public float survivalTime = 0f;
     public int collectedPoints = 0;
     public bool isGameOver = false;
@@ -37,11 +37,12 @@ public class GameManager : MonoBehaviour
 
     void UpdateScoreUI()
     {
-        scoreText.text = "Puntaje: " + TotalScore();
+        if (scoreText != null)
+            scoreText.text = "Score: " + TotalScore();
     }
 
-    int TotalScore()
+    public int TotalScore()
     {
-        return Mathf.FloorToInt(survivalTime) + collectedPoints;
+        return Mathf.FloorToInt(survivalTime * 3) + collectedPoints;
     }
 }

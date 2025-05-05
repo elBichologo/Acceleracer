@@ -4,7 +4,6 @@ using UnityEngine.SceneManagement;
 public class PlayerController : MonoBehaviour
 {
     public float moveSpeed = 10f;
-    private float score = 0f;
     private bool isAlive = true;
 
     void Update()
@@ -17,13 +16,11 @@ public class PlayerController : MonoBehaviour
         Vector3 movement = new Vector3(h, 0, v) * moveSpeed * Time.deltaTime;
         transform.Translate(movement);
 
-        // Puntaje basado en tiempo
-        score += Time.deltaTime;
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("enemy"))
+        if (collision.gameObject.CompareTag("Enemy"))
         {
             GameManager.Instance.GameOver();
             GameOver();
@@ -32,19 +29,26 @@ public class PlayerController : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("powerup"))
+        if (other.CompareTag("PowerUp"))
         {
-            score += 10f; // Por ejemplo, 10 puntos por powerup
-            Destroy(other.gameObject);
+            // Obtener referencia al script PowerUp para conocer su valor de puntos
+            PowerUp powerUp = other.GetComponent<PowerUp>();
+            
+            if (powerUp != null)
+            {
+                // Usar el valor de puntos específico de este power-up
+                int points = powerUp.pointsValue;
+                GameManager.Instance.AddPowerUpPoints(points);
+                // Destruir el objeto power-up
+                Destroy(other.gameObject);
+                
+                Debug.Log($"PowerUp recogido! +{points} puntos");
+            }
         }
     }
-
     void GameOver()
     {
         isAlive = false;
-        Debug.Log("Game Over. Puntaje final: " + Mathf.RoundToInt(score));
-        // Aquí puedes llamar a un manejador de UI o reiniciar escena:
-        // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        Debug.Log("Game Over. Puntaje final: " + GameManager.Instance.TotalScore());
     }
 }
-
