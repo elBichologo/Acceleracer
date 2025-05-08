@@ -16,6 +16,16 @@ public class GameManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
+    void Start()
+    {
+        // Reseteamos los valores al iniciar
+        survivalTime = 0f;
+        collectedPoints = 0;
+        isGameOver = false;
+        
+        Debug.Log("GameManager iniciado correctamente.");
+    }
+    
     void Update()
     {
         if (isGameOver) return;

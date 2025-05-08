@@ -1,9 +1,11 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PowerUpSpawner : MonoBehaviour
 {
     public GameObject powerUpPrefab;
+    public int poolSize = 2; // Solo necesitamos un par de objetos (por si acaso)
     
     // Dimensiones de la calle (15x10)
     public float streetWidth = 15f;
@@ -16,8 +18,44 @@ public class PowerUpSpawner : MonoBehaviour
     public float minSpawnTime = 10f;
     public float maxSpawnTime = 30f;
     
+    // Tiempo de vida del PowerUp
+    public float powerUpLifetime = 7f;
+    
     private bool canSpawn = true;
     private Coroutine spawnCoroutine;
+    private List<GameObject> powerUpPool = new List<GameObject>();
+    private Transform poolContainer;
+
+    void Awake()
+    {
+        // Crear contenedor para el pool
+        poolContainer = new GameObject("PowerUpPool").transform;
+        poolContainer.SetParent(transform);
+        
+        // Inicializar el pool
+        InitializePool();
+    }
+    
+    void InitializePool()
+    {
+        for (int i = 0; i < poolSize; i++)
+        {
+            GameObject powerUp = Instantiate(powerUpPrefab, Vector3.zero, Quaternion.identity);
+            powerUp.name = $"PowerUp_{i}";
+            powerUp.SetActive(false);
+            powerUp.transform.SetParent(poolContainer);
+            
+            // Asignar referencia al spawner
+            PowerUp powerUpComponent = powerUp.GetComponent<PowerUp>();
+            if (powerUpComponent != null)
+            {
+                powerUpComponent.spawner = this;
+                powerUpComponent.lifetime = powerUpLifetime;
+            }
+            
+            powerUpPool.Add(powerUp);
+        }
+    }
 
     void Start()
     {
@@ -42,15 +80,49 @@ public class PowerUpSpawner : MonoBehaviour
     
     void SpawnPowerUp()
     {
-        // Calcular una posición aleatoria dentro del área del street
-        float randomX = Random.Range(-streetWidth/2 + 1f, streetWidth/2 - 1f);
-        float randomZ = Random.Range(-streetLength/2 + 1f, streetLength/2 - 1f);
+        // Obtener un PowerUp del pool
+        GameObject powerUp = GetPowerUpFromPool();
+        if (powerUp != null)
+        {
+            // Calcular una posición aleatoria dentro del área del street
+            float randomX = Random.Range(-streetWidth/2 + 1f, streetWidth/2 - 1f);
+            float randomZ = Random.Range(-streetLength/2 + 1f, streetLength/2 - 1f);
+            
+            Vector3 spawnPos = new Vector3(randomX, spawnY, randomZ);
+            
+            // Posicionar y activar
+            powerUp.transform.position = spawnPos;
+            powerUp.SetActive(true);
+            
+            // Reiniciar el temporizador del PowerUp
+            PowerUp powerUpComponent = powerUp.GetComponent<PowerUp>();
+            if (powerUpComponent != null)
+            {
+                powerUpComponent.ResetLifetime();
+            }
+            
+            Debug.Log($"Spawning power-up from pool at position: {spawnPos}");
+        }
+    }
+    
+    GameObject GetPowerUpFromPool()
+    {
+        // Buscar un PowerUp inactivo en el pool
+        foreach (GameObject powerUp in powerUpPool)
+        {
+            if (!powerUp.activeInHierarchy)
+            {
+                return powerUp;
+            }
+        }
         
-        Vector3 spawnPos = new Vector3(randomX, spawnY, randomZ);
-        
-        Debug.Log($"Spawning power-up at position: {spawnPos}");
-        
-        Instantiate(powerUpPrefab, spawnPos, Quaternion.identity);
+        Debug.LogWarning("Pool de PowerUp agotado. Todos los PowerUps están activos.");
+        return null;
+    }
+    
+    public void ReturnToPool(GameObject powerUp)
+    {
+        powerUp.SetActive(false);
     }
     
     public void StopSpawning()
