@@ -28,6 +28,15 @@ public class PlayerController : MonoBehaviour
         // Asegurarse que tiene el tag correcto para colisiones
         if (gameObject.tag != "Player")
             gameObject.tag = "Player";
+
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody>();
+        }
+        rb.useGravity = false;
+        rb.isKinematic = true;
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
     }
 
     void Update()
@@ -41,8 +50,31 @@ public class PlayerController : MonoBehaviour
         // Con rotación de 180 grados, el movimiento debe usar los valores sin invertir
         Vector3 movement = new Vector3(h, 0, v) * moveSpeed * Time.deltaTime;
         transform.Translate(movement, Space.World);
+
+        CheckBoundaries();
     }
 
+    void CheckBoundaries()
+    {
+        // Dimensiones del street: 15x0.2x10 centrado en (0,0,0)
+        float maxX = 7.5f;  // 15/2
+        float maxZ = 5.0f;  // 10/2
+        
+        Vector3 position = transform.position;
+        
+        // Verificar si está fuera de los límites
+        if (position.x < -maxX || position.x > maxX || 
+            position.z < -maxZ || position.z > maxZ)
+        {
+            Debug.Log("¡Jugador fuera de límites! Posición: " + position);
+            
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.GameOver();
+            }
+            GameOver();
+        }
+    }
     // Detección de colisiones físicas (no-trigger)
     void OnCollisionEnter(Collision collision)
     {

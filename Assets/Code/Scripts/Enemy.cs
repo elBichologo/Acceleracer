@@ -70,4 +70,23 @@ public class Enemy : MonoBehaviour
             gameObject.SetActive(false);
         }
     }
+
+    void OnDrawGizmos()
+    {
+        // Visualizar el collider en el editor
+        BoxCollider boxCollider = GetComponent<BoxCollider>();
+        if (boxCollider != null)
+        {
+            // Verde para colliders normales, rojo para triggers
+            Gizmos.color = boxCollider.isTrigger ? Color.red : Color.green;
+            
+            // Dibujar el collider en la posición correcta
+            Matrix4x4 rotationMatrix = Matrix4x4.TRS(
+                transform.position,
+                transform.rotation,
+                transform.lossyScale);
+            Gizmos.matrix = rotationMatrix;
+            Gizmos.DrawWireCube(boxCollider.center, boxCollider.size);
+        }
+    }
 }

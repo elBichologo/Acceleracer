@@ -333,17 +333,25 @@ public class EnemySpawner : MonoBehaviour
                 
             case 1: // HyperSport
                 boxCollider.center = new Vector3(0, 0.4f, 0);
-                boxCollider.size = new Vector3(0.8f, 0.8f, 2f);
+                boxCollider.size = new Vector3(0.4f, 0.8f, 1.5f);
                 break;
                 
             case 2: // Standar
                 boxCollider.center = new Vector3(0, 0.4f, 0);
-                boxCollider.size = new Vector3(0.8f, 0.5f, 1.5f);
+                boxCollider.size = new Vector3(0.1f, 1.0f, 0.01f);
+
+                Rigidbody standardRb = enemy.GetComponent<Rigidbody>();
+                if (standardRb == null) {
+                    standardRb = enemy.AddComponent<Rigidbody>();
+                    standardRb.useGravity = false;
+                    standardRb.isKinematic = true;
+                    standardRb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+                }
                 break;
                 
             case 3: // Truck
                 boxCollider.center = new Vector3(0, 0.4f, 0);
-                boxCollider.size = new Vector3(1.7f, 2.4f, 3f);
+                boxCollider.size = new Vector3(0.32f, 2.4f, 0.8f);
                 break;
     }
         
