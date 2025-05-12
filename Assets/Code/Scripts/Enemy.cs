@@ -8,8 +8,8 @@ public class Enemy : MonoBehaviour
 
     void OnEnable()
     {
-        // Asegurarse que la rotación es correcta al activarse
-        transform.rotation = Quaternion.Euler(0, 180, 0);
+        // Mantener la rotación configurada en el spawner según el tipo de enemigo
+        // No aplicar rotación adicional aquí
         
         // Actualizar la velocidad
         UpdateSpeed();
@@ -21,11 +21,14 @@ public class Enemy : MonoBehaviour
     {
         if (!gameObject.activeInHierarchy) return;
 
-        // Mover usando la velocidad actual
-        transform.Translate(0, 0, currentSpeed * Time.deltaTime);
-
-        // Devolver al pool si sale de la zona visible
-        if (transform.position.z < -10f)
+        // Simplificar: todos los enemigos se mueven hacia abajo (dirección -Z) 
+        transform.Translate(0, 0, -currentSpeed * Time.deltaTime, Space.World);
+        
+        // Verificar si salió de la zona visible
+        float threshold = -10f;
+        bool isOutOfBounds = transform.position.z < threshold;
+                
+        if (isOutOfBounds)
         {
             ReturnToPool();
         }
@@ -42,7 +45,7 @@ public class Enemy : MonoBehaviour
             // Cada incremento aumenta la velocidad en 0.2
             float speedBonus = speedIncrements * 0.2f;
             
-            // IMPORTANTE: Aplicar la bonificación a la velocidad base específica de este enemigo
+            // Aplicar la bonificación a la velocidad base específica de este enemigo
             currentSpeed = baseSpeed + speedBonus;
             
             // Debug para verificar que la velocidad está aumentando

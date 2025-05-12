@@ -19,8 +19,8 @@ public class EnemySpawner : MonoBehaviour
     
     // Ajustado a plano de 15 en X
     public float[] laneXPositions = new float[] { -6.25f, -3.75f, -1.25f, 1.25f, 3.75f, 6.25f };
-    public float spawnZ = 5f; // Reducido de 18f a 5f
-    public float spawnY = 1.2f; // Altura ajustada como solicitaste
+    public float spawnZ = 10f; // Reducido de 18f a 5f
+    public float spawnY = 0.5f; // Altura ajustada como solicitaste
     private bool canSpawn = true;
     
     // Tiempo para alcanzar la dificultad máxima (en segundos)
@@ -259,12 +259,38 @@ public class EnemySpawner : MonoBehaviour
         GameObject enemy = GetEnemyFromPool(enemyIndex);
         if (enemy != null)
         {
-            // Posicionar y activar
+            // Posicionar 
             Vector3 spawnPos = new Vector3(laneXPositions[laneIndex], spawnY, spawnZ);
             enemy.transform.position = spawnPos;
             
-            // Asegurarse que la rotación es correcta
-            enemy.transform.rotation = Quaternion.Euler(0, 180, 0);
+            // Configurar rotación según el índice del enemigo
+            switch (enemyIndex)
+            {
+                case 0: // Bike - ya está correcto
+                    enemy.transform.rotation = Quaternion.Euler(0, 180, 0);
+                    Debug.Log($"Rotando {enemy.name} (Bike) a 180 grados");
+                    break;
+                    
+                case 1: // HyperSport - ya está correcto
+                    enemy.transform.rotation = Quaternion.Euler(0, 0, 0);
+                    Debug.Log($"Rotando {enemy.name} (HyperSp) a 0 grados");
+                    break;
+                    
+                case 2: // Standar - corregir para que mire hacia adelante
+                    enemy.transform.rotation = Quaternion.Euler(0, 90, 0); // Rotar 180 grados
+                    Debug.Log($"Rotando {enemy.name} (Standar) ");
+                    break;
+                    
+                case 3: // Truck - corregir para que mire hacia adelante
+                    enemy.transform.rotation = Quaternion.Euler(0, 0, 0); // Rotar 90 grados
+                    Debug.Log($"Rotando {enemy.name} (Truck) a 90 grados");
+                    break;
+                    
+                default:
+                    enemy.transform.rotation = Quaternion.Euler(0, 180, 0);
+                    Debug.Log($"Rotando {enemy.name} (default) a 180 grados");
+                    break;
+            }
             
             // Actualizar la velocidad antes de activar
             Enemy enemyComponent = enemy.GetComponent<Enemy>();
@@ -273,12 +299,61 @@ public class EnemySpawner : MonoBehaviour
                 enemyComponent.UpdateSpeed();
             }
             
+            // Configurar collider según el tipo
+            ConfigureEnemyCollider(enemy, enemyIndex);
+            
             // Activar el enemigo
             enemy.SetActive(true);
             
             // Ignorar colisiones entre este enemigo y otros
             IgnoreEnemyCollisions(enemy);
         }
+    }
+
+    // Método para configurar el collider según el tipo de enemigo
+    void ConfigureEnemyCollider(GameObject enemy, int enemyType)
+    {
+        // Eliminar colliders existentes
+        Collider[] existingColliders = enemy.GetComponents<Collider>();
+        foreach (var col in existingColliders)
+        {
+            Destroy(col);
+        }
+        
+        // Crear un nuevo BoxCollider
+        BoxCollider boxCollider = enemy.AddComponent<BoxCollider>();
+        
+        // Configuración específica según el tipo
+        switch (enemyType)
+        {
+            case 0: // Bike
+                boxCollider.center = new Vector3(0, 0.4f, 0);
+                boxCollider.size = new Vector3(0.4f, 0.5f, 0.9f);
+                break;
+                
+            case 1: // HyperSport
+                boxCollider.center = new Vector3(0, 0.4f, 0);
+                boxCollider.size = new Vector3(0.8f, 0.8f, 2f);
+                break;
+                
+            case 2: // Standar
+                boxCollider.center = new Vector3(0, 0.4f, 0);
+                boxCollider.size = new Vector3(0.8f, 0.5f, 1.5f);
+                break;
+                
+            case 3: // Truck
+                boxCollider.center = new Vector3(0, 0.4f, 0);
+                boxCollider.size = new Vector3(1.7f, 2.4f, 3f);
+                break;
+    }
+        
+        // IMPORTANTE: Verificar que estos valores se estén aplicando
+        Debug.Log($"Configurando collider para {enemy.name} tipo {enemyType}: tamaño={boxCollider.size}, centro={boxCollider.center}");
+        
+        // Asegurarnos que NO sea trigger y tenga tags correctos
+        boxCollider.isTrigger = true;
+        enemy.tag = "Enemy";
+        enemy.layer = LayerMask.NameToLayer("Enemy");
     }
 
     // Método auxiliar para ignorar colisiones temporalmente entre enemigos
