@@ -7,13 +7,15 @@ public class UIManager : MonoBehaviour
     public TMP_Text scoreText;
     public TMP_Text timeText;
     public GameObject gameOverPanel;
-    public TMP_Text finalScoreText;  // Nuevo: referencia al texto del puntaje final
+    public TMP_Text finalScoreText;
+
+    public AudioSource gameOverAudio;  // 🎵 Añadido
 
     private GameManager gameManager;
+    private bool gameOverHandled = false;  // ✅ Para evitar múltiples llamadas
 
     void Awake()
     {
-        // Asegúrate que el panel esté desactivado al inicio
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
     }
@@ -24,30 +26,37 @@ public class UIManager : MonoBehaviour
     }
 
     void Update()
-    {
-        if (gameManager != null)
         {
-            if (scoreText != null)
-                scoreText.text = "Score: " + gameManager.TotalScore();
-            
-            if (timeText != null)
-                timeText.text = "Time: " + Mathf.FloorToInt(gameManager.survivalTime) + "s";
-
-            // Si el juego termina, mostrar panel y actualizar puntaje final
-            if (gameManager.isGameOver && gameOverPanel != null)
+            if (gameManager != null)
             {
-                gameOverPanel.SetActive(true);
-                
-                if (finalScoreText != null)
-                    finalScoreText.text = "Final Score: " + gameManager.TotalScore();
+                if (scoreText != null)
+                    scoreText.text = "Score: " + gameManager.TotalScore();
+
+                if (timeText != null)
+                    timeText.text = "Time: " + Mathf.FloorToInt(gameManager.survivalTime) + "s";
+
+                if (gameManager.isGameOver && !gameOverHandled)
+                {
+                    gameOverHandled = true;
+
+                    // Muestra el panel de Game Over
+                    if (gameOverPanel != null)
+                        gameOverPanel.SetActive(true);
+
+                    // Muestra la puntuación final
+                    if (finalScoreText != null)
+                        finalScoreText.text = "Final Score: " + gameManager.TotalScore();
+
+                    // Reproduce el sonido del Game Over, solo cuando se activa el Game Over
+                    if (gameOverAudio != null)
+                        gameOverAudio.Play();
+                }
             }
         }
-    }
 
-    // Método que se llamará desde el botón Restart
+
     public void RestartGame()
     {
-        // Recarga la escena actual
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.buildIndex);
     }
